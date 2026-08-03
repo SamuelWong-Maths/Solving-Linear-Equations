@@ -1,0 +1,685 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Daily Maths Practice: Solving Linear Equations</title>
+    
+    <script id="MathJax-script" async src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
+    <script src="https://unpkg.com/mathlive"></script>
+
+    <style>
+        :root {
+            --primary: #2c3e50;
+            --secondary: #3498db;
+            --bg-color: #ecf0f1;
+            --text-color: #333;
+            --success: #27ae60;
+            --danger: #c0392b;
+            
+            /* Hide the action toolbar (Undo, Redo, Paste) */
+            --keyboard-toolbar-display: none !important;
+            --keyboard-actionbar-display: none !important;
+        }
+
+        math-virtual-keyboard::part(toolbar),
+        math-virtual-keyboard::part(action-toolbar),
+        math-virtual-keyboard::part(actionbar) {
+            display: none !important;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background-color: var(--bg-color);
+            color: var(--text-color);
+            margin: 0;
+            padding: 20px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            min-height: 100vh;
+            box-sizing: border-box;
+        }
+
+        .container {
+            width: 100%;
+            max-width: 1000px;
+            background: white;
+            padding: 30px;
+            border-radius: 12px;
+            box-shadow: 0 8px 15px rgba(0,0,0,0.1);
+            text-align: center;
+            box-sizing: border-box;
+            margin-bottom: 30px;
+        }
+        
+        .hidden { display: none !important; }
+        
+        .score-board {
+            font-size: 1.4rem;
+            font-weight: bold;
+            margin-bottom: 25px;
+            color: var(--secondary);
+            background: #e8f4fc;
+            padding: 10px;
+            border-radius: 8px;
+        }
+        
+        button {
+            background-color: var(--secondary);
+            color: white;
+            border: none;
+            padding: 15px 20px;
+            margin: 10px;
+            font-size: 1.1rem;
+            border-radius: 8px;
+            cursor: pointer;
+            width: 100%;
+            max-width: 300px;
+            transition: background 0.3s, transform 0.1s;
+        }
+        button:hover { background-color: #2980b9; }
+        button:active { transform: scale(0.98); }
+        
+        .level-btn-1 { background-color: #2ecc71; }
+        .level-btn-1:hover { background-color: #27ae60; }
+        .level-btn-2 { background-color: #f1c40f; color: #333; }
+        .level-btn-2:hover { background-color: #f39c12; }
+        .level-btn-3 { background-color: #e74c3c; }
+        .level-btn-3:hover { background-color: #c0392b; }
+        
+        .counter-text {
+            display: block;
+            font-size: 0.9rem;
+            margin-top: 5px;
+            opacity: 0.9;
+        }
+
+        /* Workspace Layout */
+        .workspace {
+            display: flex;
+            flex-direction: column;
+            gap: 30px;
+            text-align: center;
+        }
+        @media (min-width: 850px) {
+            .workspace {
+                flex-direction: row;
+                text-align: left;
+            }
+            .question-section {
+                flex: 1.2; 
+                display: flex;
+                flex-direction: column;
+                align-items: center;
+                justify-content: flex-start;
+            }
+            .canvas-section {
+                flex: 1;
+                display: flex;
+                flex-direction: column;
+                align-items: center;
+                justify-content: flex-start;
+            }
+        }
+
+        #question-display {
+            font-size: 1.8rem;
+            margin: 10px 0;
+            min-height: 80px;
+            overflow-x: auto;
+            padding: 10px;
+            width: 100%;
+            text-align: center;
+        }
+        
+        math-field {
+            font-size: 1.6rem;
+            width: 100%;
+            max-width: 300px;
+            margin: 0 auto 15px auto;
+            border: 2px solid #bdc3c7;
+            border-radius: 8px;
+            padding: 10px;
+            background: #fff;
+        }
+        math-field:focus-within { border-color: var(--secondary); outline: none; }
+        
+        math-field::part(menu-toggle) { display: none; }
+        math-field::part(virtual-keyboard-toggle) { display: none; }
+
+        /* --- NATIVE HTML KEYBOARD STYLES --- */
+        #custom-html-keyboard {
+            display: grid;
+            grid-template-columns: repeat(5, 1fr);
+            gap: 8px;
+            width: 100%;
+            max-width: 480px;
+            margin: 0 auto 20px auto;
+            background-color: #f4f6f7;
+            padding: 12px;
+            border-radius: 10px;
+            border: 2px solid #bdc3c7;
+            box-shadow: inset 0 2px 5px rgba(0,0,0,0.05);
+            touch-action: manipulation; 
+        }
+
+        .key-btn {
+            background-color: white;
+            border: 1px solid #ccc;
+            border-radius: 8px;
+            padding: 15px 0;
+            margin: 0;
+            width: 100%;
+            font-size: 1.5rem;
+            font-weight: bold;
+            cursor: pointer;
+            color: #2c3e50;
+            box-shadow: 0 3px 0 #ccc;
+            user-select: none;
+            transition: all 0.1s;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .key-btn:active {
+            transform: translateY(3px);
+            box-shadow: none;
+            background-color: #e2e6e8;
+        }
+
+        .key-action { background-color: #3498db; color: white; border-color: #2980b9; box-shadow: 0 3px 0 #2980b9; }
+        .key-span-2 { grid-column: span 2; }
+        .key-span-3 { grid-column: span 3; background-color: #e74c3c; color: white; border-color: #c0392b; box-shadow: 0 3px 0 #c0392b; }
+
+        /* --- CUSTOM FRACTION & INDICES ICONS --- */
+        .icon-frac {
+            display: inline-flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            gap: 2px;
+        }
+        .icon-frac .box {
+            width: 12px; height: 12px; border: 2px solid currentColor; border-radius: 1px; box-sizing: border-box;
+        }
+        .icon-frac .line { width: 18px; height: 2px; background-color: currentColor; }
+
+        .icon-index {
+            display: inline-flex; align-items: flex-start; justify-content: center;
+        }
+        .icon-index .base-box {
+            width: 15px; height: 15px; border: 2px solid currentColor; border-radius: 1px; margin-top: 6px; box-sizing: border-box;
+        }
+        .icon-index .sup-box {
+            width: 9px; height: 9px; border: 2px solid currentColor; border-radius: 1px; margin-left: 2px; box-sizing: border-box;
+        }
+
+        /* Scratchpad Styling */
+        .scratchpad-container {
+            width: 100%;
+            border: 2px dashed #bdc3c7;
+            border-radius: 8px;
+            background-color: #f9fbfb;
+        }
+        canvas {
+            width: 100%; height: 380px; border-radius: 8px; cursor: crosshair; touch-action: none;
+        }
+        .clear-btn {
+            background-color: #e74c3c; padding: 8px 15px; font-size: 0.9rem; margin-top: 10px; max-width: 150px;
+        }
+        .clear-btn:hover { background-color: #c0392b; }
+        
+        /* Modals */
+        .modal-overlay {
+            position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+            background: rgba(0,0,0,0.6); display: flex; justify-content: center; align-items: center; z-index: 20000;
+        }
+        .modal-content {
+            background: white; padding: 30px; border-radius: 12px; text-align: center; max-width: 90%; max-height: 90vh; overflow-y: auto; box-shadow: 0 10px 25px rgba(0,0,0,0.2);
+        }
+        #feedback-correct-answer {
+            font-size: 1.3rem; margin: 20px 0; color: var(--primary); text-align: left; background: #f8f9fa; padding: 15px; border-radius: 8px; border-left: 4px solid var(--danger); display: none;
+        }
+        .form-group { margin-bottom: 15px; text-align: left; }
+        .form-group label { display: block; margin-bottom: 5px; font-weight: bold; }
+        .form-group input, .form-group select {
+            width: 100%; padding: 12px; box-sizing: border-box; border: 1px solid #ccc; border-radius: 6px; font-size: 1rem;
+        }
+    </style>
+</head>
+<body>
+
+    <div id="menu-screen" class="container">
+        <h1 style="color: var(--primary);">Daily Maths Practice</h1>
+        <h2>Solving Linear Equations</h2>
+        <div class="score-board">Total Score: <span id="score-display">0</span></div>
+        <p style="font-size: 1.1rem; color: #666;">Select a level to start:</p>
+        
+        <button class="level-btn-1" onclick="startQuestion(1)">
+            Level 1 (1 Mark)
+            <span class="counter-text">Correct: <span id="count-1">0</span></span>
+        </button><br>
+        
+        <button class="level-btn-2" onclick="startQuestion(2)">
+            Level 2 (2 Marks)
+            <span class="counter-text">Correct: <span id="count-2">0</span></span>
+        </button><br>
+        
+        <button class="level-btn-3" onclick="startQuestion(3)">
+            Level 3 (3 Marks)
+            <span class="counter-text">Correct: <span id="count-3">0</span></span>
+        </button>
+        
+        <p style="font-size: 1.1rem; color: #e74c3c; font-weight: bold; margin-top: 25px;">
+            Obtain at least 15 marks to finish the daily practice
+        </p>
+    </div>
+
+    <div id="question-screen" class="container hidden">
+        <h3 id="level-title" style="color: var(--primary); margin-top: 0;"></h3>
+        
+        <div class="workspace">
+            <div class="question-section">
+                <div id="question-display"></div>
+                <p style="font-size: 1.1rem; color: #555; text-align: center; margin-bottom: 5px;">The value of <strong>\(x\)</strong> is:</p>
+                <math-field id="answer-input" math-virtual-keyboard-policy="manual"></math-field>
+                
+                <div id="custom-html-keyboard">
+                    <button class="key-btn" onclick="insertMath('7')">7</button>
+                    <button class="key-btn" onclick="insertMath('8')">8</button>
+                    <button class="key-btn" onclick="insertMath('9')">9</button>
+                    <button class="key-btn key-action" onclick="insertMath('\\frac{#@}{#?}')">
+                        <span class="icon-frac"><span class="box"></span><span class="line"></span><span class="box"></span></span>
+                    </button>
+                    <button class="key-btn key-action" onclick="insertMath('\\sqrt{#?}')">√</button>
+
+                    <button class="key-btn" onclick="insertMath('4')">4</button>
+                    <button class="key-btn" onclick="insertMath('5')">5</button>
+                    <button class="key-btn" onclick="insertMath('6')">6</button>
+                    <button class="key-btn key-action" onclick="insertMath('^{#?}')">
+                        <span class="icon-index"><span class="box base-box"></span><span class="box sup-box"></span></span>
+                    </button>
+                    <button class="key-btn key-action" onclick="insertMath('-')">−</button>
+
+                    <button class="key-btn" onclick="insertMath('1')">1</button>
+                    <button class="key-btn" onclick="insertMath('2')">2</button>
+                    <button class="key-btn" onclick="insertMath('3')">3</button>
+                    <button class="key-btn key-action" onclick="cmdMath('moveToPreviousChar')">◀</button>
+                    <button class="key-btn key-action" onclick="cmdMath('moveToNextChar')">▶</button>
+
+                    <button class="key-btn key-span-2" onclick="insertMath('0')">0</button>
+                    <button class="key-btn key-span-3" onclick="cmdMath('deleteBackward')">⌫ Delete</button>
+                </div>
+                
+                <button id="submit-btn" onclick="checkAnswer()">Submit Answer</button>
+                <button onclick="returnToMenu()" style="background-color: #95a5a6;">Back to Menu</button>
+            </div>
+            
+            <div class="canvas-section">
+                <p style="margin: 0 0 10px 0; color: #7f8c8d; font-weight: bold;">Scratchpad for working steps:</p>
+                <div class="scratchpad-container">
+                    <canvas id="scratchpad"></canvas>
+                </div>
+                <button class="clear-btn" onclick="clearScratchpad()">Clear Scratchpad</button>
+            </div>
+        </div>
+    </div>
+
+    <div id="feedback-modal" class="modal-overlay hidden">
+        <div class="modal-content">
+            <h2 id="feedback-title"></h2>
+            <p id="feedback-message" style="font-size: 1.2rem;"></p>
+            <div id="feedback-correct-answer"></div>
+            <button id="feedback-btn" onclick="closeFeedback()">Continue</button>
+        </div>
+    </div>
+
+    <div id="form-modal" class="modal-overlay hidden">
+        <div class="modal-content" style="max-width: 450px; width: 100%;">
+            <h2 style="color: var(--success);">Achievement Unlocked!</h2>
+            <p>You've reached 15 marks! Please enter your details to record your progress.</p>
+            <div class="form-group"><label>Name:</label><input type="text" id="student-name" required placeholder="e.g. Chan Tai Man"></div>
+            <div class="form-group"><label>Class:</label><select id="student-class"></select></div>
+            <div class="form-group"><label>Class Number:</label><select id="student-number"></select></div>
+            <button onclick="submitForm()" style="background-color: var(--success);">Submit Results</button>
+            <p id="form-status" style="color: var(--danger); display: none;">Saving to Google Sheets...</p>
+        </div>
+    </div>
+
+    <script>
+        let currentScore = 0, currentLevel = 1, targetNumerator = 0, targetDenominator = 1;
+        let currentSolutionTex = "", formTriggered = false;
+        let levelCounts = { 1: 0, 2: 0, 3: 0 };
+        let canvas, ctx, isDrawing = false;
+
+        document.addEventListener('DOMContentLoaded', initializeApp);
+
+        function initializeApp() {
+            const classSelect = document.getElementById('student-class');
+            if (classSelect && classSelect.options.length === 0) {
+                ["1A","1B","1C","1D","1E","1F","2A","2B","2C","2D","2E","2F","3A","3B","3C","3D","3E","3F"].forEach(c => classSelect.add(new Option(c, c)));
+            }
+            const numSelect = document.getElementById('student-number');
+            if (numSelect && numSelect.options.length === 0) {
+                for(let i = 1; i <= 38; i++) numSelect.add(new Option(i, i));
+            }
+            initCanvas();
+        }
+
+        function insertMath(latexStr) {
+            const mf = document.getElementById('answer-input');
+            if (mf && typeof mf.insert === 'function') { mf.focus(); mf.insert(latexStr); }
+        }
+
+        function cmdMath(commandStr) {
+            const mf = document.getElementById('answer-input');
+            if (mf && typeof mf.executeCommand === 'function') { mf.focus(); mf.executeCommand(commandStr); }
+        }
+
+        function initCanvas() {
+            canvas = document.getElementById('scratchpad');
+            if (!canvas) return;
+            ctx = canvas.getContext('2d');
+            canvas.addEventListener('pointerdown', startDrawing);
+            canvas.addEventListener('pointermove', draw);
+            canvas.addEventListener('pointerup', stopDrawing);
+            canvas.addEventListener('pointercancel', stopDrawing);
+            canvas.addEventListener('pointerout', stopDrawing);
+            window.addEventListener('resize', resizeCanvas);
+        }
+
+        function resizeCanvas() {
+            if (!canvas || !ctx) return;
+            const tempCanvas = document.createElement('canvas');
+            tempCanvas.width = canvas.width; tempCanvas.height = canvas.height;
+            if (canvas.width > 0 && canvas.height > 0) {
+                tempCanvas.getContext('2d').drawImage(canvas, 0, 0);
+            }
+            canvas.width = canvas.offsetWidth; canvas.height = 380; 
+            ctx.strokeStyle = '#2980b9'; ctx.lineWidth = 3; ctx.lineCap = 'round'; ctx.lineJoin = 'round';
+            if (tempCanvas.width > 0 && tempCanvas.height > 0) { ctx.drawImage(tempCanvas, 0, 0); }
+        }
+
+        function getCoordinates(e) {
+            const rect = canvas.getBoundingClientRect(); return { x: e.clientX - rect.left, y: e.clientY - rect.top };
+        }
+
+        function startDrawing(e) {
+            e.preventDefault(); isDrawing = true;
+            const { x, y } = getCoordinates(e); ctx.beginPath(); ctx.moveTo(x, y); draw(e);
+        }
+
+        function draw(e) {
+            if (!isDrawing) return;
+            e.preventDefault(); const { x, y } = getCoordinates(e); ctx.lineTo(x, y); ctx.stroke(); ctx.beginPath(); ctx.moveTo(x, y);
+        }
+
+        function stopDrawing(e) { e.preventDefault(); isDrawing = false; ctx.beginPath(); }
+        function clearScratchpad() { if(ctx && canvas) ctx.clearRect(0, 0, canvas.width, canvas.height); }
+
+        function getRandomInt(min, max, excludes = []) {
+            let val; do { val = Math.floor(Math.random() * (max - min + 1)) + min; } while (excludes.includes(val)); return val;
+        }
+        function gcd(a, b) { a = Math.abs(a); b = Math.abs(b); while (b) { let t = b; b = a % b; a = t; } return a; }
+        function lcm(a, b) { return Math.abs(a * b) / gcd(a, b); }
+        function leading(a) { if (a === 1) return ""; if (a === -1) return "-"; return a; }
+        function coeff(a) { if (a === 1) return "+"; if (a === -1) return "-"; return a > 0 ? "+" + a : a; }
+        function numFmt(a) { if (a === 0) return ""; return a > 0 ? "+" + a : a; }
+        function constCoeff(a) { if (a === 0) return ""; return a > 0 ? "+" + a : "" + a; }
+        function simFrac(n, d) {
+            if (d === 0) return { tex: "Undefined", n: NaN, d: NaN };
+            let sign = (n * d < 0) ? -1 : 1; n = Math.abs(n); d = Math.abs(d);
+            let g = gcd(n, d); n /= g; d /= g; let finalN = sign * n;
+            let tex = (d === 1) ? ("" + finalN) : ((sign < 0 ? "-" : "") + "\\frac{" + n + "}{" + d + "}");
+            return { tex: tex, n: finalN, d: d };
+        }
+        function makeAligned(steps) { return "\\begin{aligned} " + steps.map(s => s.replace('=', '&=').replace('&&=', '&=')).join(" \\\\ ") + " \\end{aligned}"; }
+
+        function generateTypeI() {
+            let a = getRandomInt(-20, 20, [0]), b = getRandomInt(-10, 10, [0]), c = getRandomInt(-25, 25);
+            let qTex = `${leading(a)}x ${numFmt(b)} = ${c}`, ans = simFrac(c - b, a);
+            let steps = [qTex, `${leading(a)}x = ${c} ${b > 0 ? '-' : '+'} ${Math.abs(b)}`, `${leading(a)}x = ${c - b}`, `x = ${ans.tex}`];
+            return { tex: qTex, n: ans.n, d: ans.d, solutionTex: makeAligned(steps) };
+        }
+
+        function generateTypeII() {
+            let a = getRandomInt(-15, 15, [0]), b = getRandomInt(-15, 15);
+            if (b === 0 || a === b) b = getRandomInt(16, 20);
+            let ansVal = getRandomInt(-15, 15, [0]); if (ansVal === 0) ansVal = getRandomInt(2, 5);
+            let c = getRandomInt(-15, 15, [0]); if (c === 0) c = getRandomInt(1, 15);
+            let d = (a - b) * ansVal + c;
+            let qTex = `${leading(a)}x ${numFmt(c)} = ${leading(b)}x ${numFmt(d)}`;
+            let steps = [qTex, `${leading(a)}x ${coeff(-b)}x = ${d} ${constCoeff(-c)}`, `${leading(a - b)}x = ${d - c}`, `x = ${ansVal}`];
+            return { tex: qTex, n: ansVal, d: 1, solutionTex: makeAligned(steps) };
+        }
+
+        function generateTypeIII() {
+            let a = getRandomInt(-10, 10, [0, 1]), b = getRandomInt(-15, 15, [0, 1]);
+            let c = getRandomInt(-15, 15, [0]), d = getRandomInt(-15, 15, [0, 1]), ansVal = getRandomInt(-15, 15, [0]);
+            let temp = a * b - d; if (temp === 0) { a = getRandomInt(20, 35); temp = a * b - d; }
+            let f = temp * ansVal + a * c, qTex = `${leading(a)}(${leading(b)}x ${numFmt(c)}) = ${leading(d)}x ${numFmt(f)}`;
+            let expA = a * b, expB = a * c;
+            let steps = [qTex, `${leading(expA)}x ${constCoeff(expB)} = ${leading(d)}x ${numFmt(f)}`, `${leading(expA)}x ${coeff(-d)}x = ${f} ${constCoeff(-expB)}`, `${leading(expA - d)}x = ${f - expB}`, `x = ${ansVal}`];
+            return { tex: qTex, n: ansVal, d: 1, solutionTex: makeAligned(steps) };
+        }
+
+        function generateTypeIV() {
+            let a = getRandomInt(-5, 5, [0]), b = getRandomInt(-15, 15, [0]), c = getRandomInt(-15, 15, [0]);
+            let d = getRandomInt(-5, 5, [0]), f = getRandomInt(-5, 10, [0]), g = getRandomInt(-5, 5, [0]), ansVal = getRandomInt(-15, 15, [0]);
+            let temp1 = a * b - d; if (temp1 === 0) a = getRandomInt(20, 35);
+            let temp2 = a * b + d * f; if (temp2 === 0) { f = f === -1 ? 2 : f + 1; temp2 = a * b + d * f; }
+            let h = temp2 * ansVal + a * c + d * g;
+            let part1 = (a === 1) ? `${leading(b)}x ${numFmt(c)}` : `${leading(a)}(${leading(b)}x ${numFmt(c)})`;
+            let qTex = `${part1} ${coeff(d)}(${leading(f)}x ${numFmt(g)}) = ${h}`;
+            let expA = a * b, expB = a * c, expC = d * f, expD = d * g;
+            let steps = [qTex, `${leading(expA)}x ${constCoeff(expB)} ${coeff(expC)}x ${constCoeff(expD)} = ${h}`, `${leading(expA + expC)}x ${constCoeff(expB + expD)} = ${h}`, `${leading(expA + expC)}x = ${h} ${constCoeff(-(expB + expD))}`, `${leading(expA + expC)}x = ${h - (expB + expD)}`, `x = ${ansVal}`];
+            return { tex: qTex, n: ansVal, d: 1, solutionTex: makeAligned(steps) };
+        }
+
+        function generateTypeV() {
+            let a = getRandomInt(-5, 5, [0]), b = getRandomInt(-5, 5, [0]), c = getRandomInt(2, 8);
+            let d = getRandomInt(-5, 5, [0]), f = getRandomInt(-7, 7, [0]), g = getRandomInt(2, 8);
+            if (c === g) g = 9; let temp = a * g - c * d; if (temp === 0) { a = getRandomInt(-10, -5); temp = a * g - c * d; }
+            let qTex = `\\frac{${leading(a)}x ${numFmt(b)}}{${c}} = \\frac{${leading(d)}x ${numFmt(f)}}{${g}}`;
+            let ans = simFrac(c * f - g * b, temp), expA = g * a, expB = g * b, expC = c * d, expD = c * f;
+            let steps = [qTex, `${g}(${leading(a)}x ${numFmt(b)}) = ${c}(${leading(d)}x ${numFmt(f)})`, `${leading(expA)}x ${constCoeff(expB)} = ${leading(expC)}x ${constCoeff(expD)}`, `${leading(expA)}x ${coeff(-expC)}x = ${expD} ${constCoeff(-expB)}`, `${leading(expA - expC)}x = ${expD - expB}`, `x = ${ans.tex}`];
+            return { tex: qTex, n: ans.n, d: ans.d, solutionTex: makeAligned(steps) };
+        }
+
+        function generateTypeVI() {
+            let a = getRandomInt(-5, 5, [0]), b = getRandomInt(-5, 5, [0]), c = getRandomInt(2, 9);
+            let d = getRandomInt(-5, 5, [0]), f = getRandomInt(-5, 5, [0]), g = getRandomInt(2, 9);
+            while (c === g) g = getRandomInt(2, 9);
+            let ansVal = getRandomInt(-5, 5), h_val = getRandomInt(1, 2), sign_val = (h_val === 1) ? -1 : 1, lcm_val = lcm(c, g);
+            let temp = a * lcm_val / c + sign_val * lcm_val * d / g;
+            if (temp === 0) { a = getRandomInt(-1, 5, [0]); temp = a * lcm_val / c + sign_val * lcm_val * d / g; if (temp === 0) a += 1; }
+            let rhs_num = (a * ansVal + b) * g + c * sign_val * (d * ansVal + f), rhs_den = c * g, rhsObj = simFrac(rhs_num, rhs_den);
+            let signTex = (sign_val === 1) ? "+" : "-", qTex = `\\frac{${leading(a)}x ${numFmt(b)}}{${c}} ${signTex} \\frac{${leading(d)}x ${numFmt(f)}}{${g}} = ${rhsObj.tex}`;
+            let mult1 = lcm_val / c, mult2 = sign_val * (lcm_val / g), expA = mult1 * a, expB = mult1 * b, expC = mult2 * d, expD = mult2 * f, rhs_total = rhs_num * (lcm_val / rhs_den);
+            let steps = [qTex, `${mult1}(${leading(a)}x ${numFmt(b)}) ${constCoeff(mult2)}(${leading(d)}x ${numFmt(f)}) = ${lcm_val} \\times \\left(${rhsObj.tex}\\right)`, `${leading(expA)}x ${constCoeff(expB)} ${coeff(expC)}x ${constCoeff(expD)} = ${rhs_total}`, `${leading(expA + expC)}x ${constCoeff(expB + expD)} = ${rhs_total}`, `${leading(expA + expC)}x = ${rhs_total} ${constCoeff(-(expB + expD))}`, `${leading(expA + expC)}x = ${rhs_total - (expB + expD)}`, `x = ${ansVal}`];
+            return { tex: qTex, n: ansVal, d: 1, solutionTex: makeAligned(steps) };
+        }
+
+        function startQuestion(level) {
+            try {
+                currentLevel = level;
+                document.getElementById('menu-screen').classList.add('hidden');
+                document.getElementById('question-screen').classList.remove('hidden');
+                
+                const submitBtn = document.getElementById('submit-btn');
+                submitBtn.innerText = "Submit Answer"; submitBtn.style.backgroundColor = ""; submitBtn.onclick = checkAnswer;
+
+                if (!canvas) initCanvas();
+                resizeCanvas();
+                document.getElementById('level-title').innerText = `Level ${level} Question`;
+                clearScratchpad();
+                
+                setTimeout(() => { const mf = document.getElementById('answer-input'); if(mf) mf.focus(); }, 150);
+
+                let qData;
+                if (level === 1) qData = Math.random() < 0.5 ? generateTypeI() : generateTypeII();
+                else if (level === 2) {
+                    let r = Math.random(); if (r < 0.33) qData = generateTypeIII(); else if (r < 0.66) qData = generateTypeIV(); else qData = generateTypeV();
+                } else qData = generateTypeVI();
+
+                targetNumerator = qData.n; targetDenominator = qData.d; currentSolutionTex = qData.solutionTex; 
+                
+                const qDisplay = document.getElementById('question-display');
+                qDisplay.innerHTML = `$$${qData.tex}$$`;
+                
+                if (window.MathJax && typeof window.MathJax.typesetPromise === 'function') {
+                    MathJax.typesetPromise([qDisplay]).catch(err => console.error("MathJax Render Error:", err));
+                }
+                
+                const mf = document.getElementById('answer-input');
+                if (mf) mf.value = '';
+            } catch (error) {
+                console.error("Critical error in startQuestion:", error);
+                alert("Please wait a moment while the Math Engine finishes loading, and try again.");
+                document.getElementById('question-screen').classList.add('hidden');
+                document.getElementById('menu-screen').classList.remove('hidden');
+            }
+        }
+
+        // --- NEW BULLETPROOF FRACTION & VALUE PARSER ---
+        function parsePart(part) {
+            part = part.replace(/[{}]/g, ''); // Remove stray curly braces
+            let sign = 1;
+            while (part.startsWith('-') || part.startsWith('+')) {
+                if (part.startsWith('-')) sign *= -1;
+                part = part.substring(1);
+            }
+            return parseInt(part, 10) * sign;
+        }
+
+        function parseAndVerifyStudentFraction(latexStr, expectedN, expectedD) {
+            let str = latexStr;
+            
+            // 1. Remove visual/formatting math tags that might wrap the numbers
+            str = str.replace(/\\displaystyle/g, '').replace(/\\textstyle/g, '');
+            str = str.replace(/\\mleft/g, '').replace(/\\mright/g, '');
+            str = str.replace(/\\left/g, '').replace(/\\right/g, '');
+            str = str.replace(/\\,/g, '').replace(/\\;/g, '').replace(/\\:/g, ''); // Spacing elements
+            
+            // 2. Remove actual spaces and the "x=" prefix
+            str = str.replace(/\s+/g, '').replace(/^x=/g, '');
+            
+            // 3. Normalize all forms of minus signs to the standard hyphen
+            str = str.replace(/[−–—]/g, '-');
+            
+            if (str === "") return false;
+
+            // 4. Strip outer parentheses that might safely surround the answer
+            while (str.startsWith('(') && str.endsWith(')')) {
+                str = str.substring(1, str.length - 1);
+            }
+
+            // 5. Calculate global +/- signs sitting outside the fraction
+            let globalSign = 1;
+            while (str.startsWith('-') || str.startsWith('+')) {
+                if (str.startsWith('-')) globalSign *= -1;
+                str = str.substring(1);
+            }
+
+            // Reject decimals completely (Answers MUST be whole numbers or fractions as requested)
+            if (str.includes('.') || str.includes(',')) return false;
+
+            let inputNum = NaN;
+            let inputDen = 1;
+
+            // 6. Match all possible MathLive fraction outputs
+            // Catches \frac{a}{b}, \dfrac{a}{b}, \tfrac{a}{b} and shortcuts like \frac12
+            const fracMatch = str.match(/\\(?:d|t)?frac\{([^{}]+)\}\{([^{}]+)\}/);
+            const fracMatchSimple = str.match(/\\(?:d|t)?frac(\d)(\d)/);
+
+            if (fracMatch) {
+                inputNum = parsePart(fracMatch[1]) * globalSign;
+                inputDen = parsePart(fracMatch[2]);
+            } else if (fracMatchSimple) {
+                inputNum = parsePart(fracMatchSimple[1]) * globalSign;
+                inputDen = parsePart(fracMatchSimple[2]);
+            } else {
+                inputNum = parsePart(str) * globalSign;
+                inputDen = 1; // It was parsed as a whole integer
+            }
+
+            // If the parse completely failed or produced dividing by zero, reject it
+            if (isNaN(inputNum) || isNaN(inputDen) || inputDen === 0) return false;
+
+            // 7. Verify the mathematical value
+            let targetValue = expectedN / expectedD;
+            let studentValue = inputNum / inputDen;
+            
+            if (Math.abs(studentValue - targetValue) > 0.0001) return false;
+
+            // 8. Verify the fraction is fully simplified
+            let currentGCD = gcd(inputNum, inputDen);
+            return currentGCD === 1;
+        }
+
+        function checkAnswer() {
+            const studentInput = document.getElementById('answer-input').value;
+            if (studentInput.trim() === "") return;
+
+            const isCorrect = parseAndVerifyStudentFraction(studentInput, targetNumerator, targetDenominator);
+            const modal = document.getElementById('feedback-modal'), title = document.getElementById('feedback-title'), msg = document.getElementById('feedback-message'), correctDiv = document.getElementById('feedback-correct-answer'), feedbackBtn = document.getElementById('feedback-btn');
+
+            if (isCorrect) {
+                title.innerText = "Congratulations!"; title.style.color = "var(--success)"; msg.innerText = "This is the correct answer.";
+                correctDiv.style.display = 'none'; correctDiv.innerHTML = "";
+                feedbackBtn.innerText = "Continue"; feedbackBtn.onclick = closeFeedback;
+                currentScore += currentLevel; levelCounts[currentLevel]++;
+                document.getElementById('score-display').innerText = currentScore;
+                document.getElementById('count-' + currentLevel).innerText = levelCounts[currentLevel];
+            } else {
+                title.innerText = "Incorrect"; title.style.color = "var(--danger)"; msg.innerText = "Here is the step-by-step solution (Note: answers must be fully simplified):";
+                feedbackBtn.innerText = "Review My Work"; feedbackBtn.onclick = reviewWork;
+                correctDiv.style.display = 'block'; correctDiv.innerHTML = `$$${currentSolutionTex}$$`;
+                if(window.MathJax) MathJax.typesetPromise([correctDiv]);
+            }
+            modal.classList.remove('hidden');
+        }
+
+        function closeFeedback() {
+            document.getElementById('feedback-modal').classList.add('hidden');
+            if (currentScore >= 15 && !formTriggered) {
+                formTriggered = true; document.getElementById('form-modal').classList.remove('hidden');
+            } else { returnToMenu(); }
+        }
+
+        function reviewWork() {
+            document.getElementById('feedback-modal').classList.add('hidden');
+            const submitBtn = document.getElementById('submit-btn');
+            submitBtn.innerText = "Start a New Question"; submitBtn.style.backgroundColor = "var(--primary)"; submitBtn.onclick = returnToMenu;
+        }
+
+        function returnToMenu() {
+            document.getElementById('question-screen').classList.add('hidden'); document.getElementById('menu-screen').classList.remove('hidden');
+        }
+
+        function submitForm() {
+            const name = document.getElementById('student-name').value.trim();
+            const stuClass = document.getElementById('student-class').value;
+            const stuNum = document.getElementById('student-number').value;
+
+            if(!name) { alert("Please enter your name."); return; }
+            document.getElementById('form-status').style.display = 'block';
+
+            if (typeof google !== 'undefined' && google.script && google.script.run) {
+                google.script.run.withSuccessHandler(function() {
+                    document.getElementById('form-modal').classList.add('hidden');
+                    document.getElementById('form-status').style.display = 'none';
+                    returnToMenu();
+                }).saveData(name, stuClass, stuNum);
+            } else {
+                alert("Data recorded locally! (Google Script simulated)");
+                document.getElementById('form-modal').classList.add('hidden');
+                document.getElementById('form-status').style.display = 'none';
+                returnToMenu();
+            }
+        }
+    </script>
+</body>
+</html>
